@@ -1,3 +1,23 @@
+#
+# This file is part of LSPosed.
+#
+# LSPosed is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# LSPosed is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with LSPosed.  If not, see <https://www.gnu.org/licenses/>.
+#
+# Copyright (C) 2020 EdXposed Contributors
+# Copyright (C) 2021 LSPosed Contributors
+#
+
 SKIPUNZIP=1
 
 abortC() {
@@ -224,12 +244,6 @@ ui_print "- ${LANG_CUST_INST_COPY_LIB}"
 
 rm -rf "/data/misc/$MISC_PATH/framework"
 mv "${MODPATH}/system/framework" "/data/misc/$MISC_PATH/framework"
-
-
-mkdir -p "/data/misc/$MISC_PATH/framework/lib"
-if [ "$IS64BIT" = true ]; then
-  mkdir -p "/data/misc/$MISC_PATH/framework/lib64"
-fi
 
 set_perm_recursive /data/misc/$MISC_PATH/framework root root 0755 0644 "u:object_r:magisk_file:s0" || abortC "! ${LANG_CUST_ERR_PERM}"
 
