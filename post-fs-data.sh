@@ -34,8 +34,8 @@ RIRU_PATH="/data/adb/riru"
 RIRU_PROP="$(magisk --path)/.magisk/modules/riru-core/module.prop"
 TARGET="${RIRU_PATH}/modules"
 
-EDXP_VERSION=$(grep_prop version "${MODDIR}/module.prop")
-EDXP_APICODE=$(grep_prop api "${MODDIR}/module.prop")
+LSPD_VERSION=$(grep_prop version "${MODDIR}/module.prop")
+LSPD_APICODE=$(grep_prop api "${MODDIR}/module.prop")
 
 ANDROID_SDK=$(getprop ro.build.version.sdk)
 BUILD_DESC=$(getprop ro.build.description)
@@ -65,18 +65,12 @@ livePatch() {
 MISC_PATH=$(cat /data/adb/lspd/misc_path)
 BASE_PATH="/data/misc/$MISC_PATH"
 
-LOG_PATH="${BASE_PATH}/log"
-DISABLE_VERBOSE_LOG_FILE="${BASE_PATH}/disable_verbose_log"
-LOG_VERBOSE=true
-OLD_PATH=${PATH}
-PATH=${PATH#*:}
-PATH_INFO=$(ls -ldZ "${BASE_PATH}")
-PATH=${OLD_PATH}
-PATH_OWNER=$(echo "${PATH_INFO}" | awk -F " " '{print $3":"$4}')
-PATH_CONTEXT=$(echo "${PATH_INFO}" | awk -F " " '{print $5}')
+LOG_PATH="/data/adb/lspd/log"
+ENABLE_VERBOSE_LOG_FILE="/data/adb/lspd/config/verbose_log"
+LOG_VERBOSE=false
 
-if [ "$(cat "${DISABLE_VERBOSE_LOG_FILE}")" = "1" ]; then
-    LOG_VERBOSE=false
+if [ "$(cat "${ENABLE_VERBOSE_LOG_FILE}")" = "1" ]; then
+    LOG_VERBOSE=true
 fi
 
 # If logcat client is kicked out by klogd server, we'll restart it.
@@ -109,8 +103,8 @@ print_log_head() {
     echo "Android build: ${BUILD}">>"${LOG_FILE}"
     echo "Android version: ${ANDROID}">>"${LOG_FILE}"
     echo "Android sdk: ${ANDROID_SDK}">>"${LOG_FILE}"
-    echo "LSPosed version: ${EDXP_VERSION}">>"${LOG_FILE}"
-    echo "LSPosed api: ${EDXP_APICODE}">>"${LOG_FILE}"
+    echo "LSPosed version: ${LSPD_VERSION}">>"${LOG_FILE}"
+    echo "LSPosed api: ${LSPD_APICODE}">>"${LOG_FILE}"
     echo "Riru version: ${RIRU_VERSION} (${RIRU_VERCODE})">>"${LOG_FILE}"
     echo "Riru api: ${RIRU_APICODE}">>"${LOG_FILE}"
     echo "Magisk: ${MAGISK_VERSION%:*} (${MAGISK_VERCODE})">>"${LOG_FILE}"
@@ -149,21 +143,31 @@ if [[ -f "/data/adb/riru/modules/lspd.prop" ]]; then
 fi
 
 chcon -R u:object_r:system_file:s0 "${MODDIR}"
-chcon -R ${PATH_CONTEXT} "${LOG_PATH}"
-chown -R ${PATH_OWNER} "${LOG_PATH}"
-chmod -R 666 "${LOG_PATH}"
+chcon -R u:object_r:system_file:s0 "/data/adb/lspd"
+rm -rf ${LOG_PATH}.old
+mv ${LOG_PATH} ${LOG_PATH}.old
+mkdir -p ${LOG_PATH}
+chcon -R u:object_r:magisk_file:s0 ${LOG_PATH}
 
 if [[ ! -z "${MISC_PATH}" ]]; then
     mkdir -p "${BASE_PATH}/cache"
     chcon -R u:object_r:magisk_file:s0 "${BASE_PATH}"
     chmod 771 "${BASE_PATH}"
     chmod 777 "${BASE_PATH}/cache"
-    rm -rf ${LOG_PATH}.old
-    mv ${LOG_PATH} ${LOG_PATH}.old
-    mkdir -p ${LOG_PATH}
-    chmod 771 ${LOG_PATH}
     print_log_head "${LOG_PATH}/modules.log"
     # start_verbose_log_catcher
-    start_log_catcher all "LSPosed:V XSharedPreferences:V LSPosed-Bridge:V LSPosedManager:V *:F" true ${LOG_VERBOSE}
+    start_log_catcher all "LSPosed:V XSharedPreferences:V LSPosed-Bridge:V LSPosedManager:V LSPosedService:V *:F" true ${LOG_VERBOSE}
 fi
 rm -f /data/adb/lspd/new_install
+
+start_app_process() {
+  while true
+  do
+    COUNT=$(awk 1 /proc/**/cmdline | grep -c zygote)
+    if [[ "$COUNT" -ge 1 ]]; then
+      /system/bin/app_process -Djava.class.path=/data/adb/lspd/framework/lspd.dex /system/bin --nice-name=lspd io.github.lsposed.lspd.core.Main
+    fi
+  done
+}
+
+start_app_process &
