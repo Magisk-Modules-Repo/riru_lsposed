@@ -54,7 +54,7 @@ require_new_android() {
     ui_print "${POUNDS}"
     ui_print "! ${LANG_UTIL_ERR_ANDROID_UNSUPPORT_1} ${1} ${LANG_UTIL_ERR_ANDROID_UNSUPPORT_2}"
     ui_print "! ${LANG_UTIL_ERR_ANDROID_UNSUPPORT_3}"
-    [[ ${BOOTMODE} == true ]] && am start -a android.intent.action.VIEW -d https://github.com/ElderDrivers/LSPosed/wiki/Available-Android-versions
+    [[ ${BOOTMODE} == true ]] && am start -a android.intent.action.VIEW -d https://github.com/LSPosed/LSPosed/wiki/Available-Android-versions
     abortC   "${POUNDS}"
 }
 
@@ -67,7 +67,7 @@ lspd_check_architecture() {
 }
 
 check_android_version() {
-    if [[ ${API} -ge 26 ]]; then
+    if [[ ${API} -ge 27 ]]; then
         ui_print "- Android SDK ${LANG_CUST_INST_VERSION}: ${API}"
     else
         require_new_android "${API}"
