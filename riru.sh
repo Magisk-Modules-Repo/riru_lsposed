@@ -1,5 +1,5 @@
 #!/sbin/sh
-RIRU_MODULE_ID="lsposed"
+RIRU_MODULE_LIB_NAME="lspd"
 
 # Variables for customize.sh
 RIRU_API=0
@@ -10,7 +10,7 @@ RIRU_VERSION_NAME=""
 # Used by /data/adb/riru/util_functions.sh
 RIRU_MODULE_API_VERSION=25
 RIRU_MODULE_MIN_API_VERSION=25
-RIRU_MODULE_MIN_RIRU_VERSION_NAME="25.0.0"
+RIRU_MODULE_MIN_RIRU_VERSION_NAME="25.0.1"
 RIRU_MODULE_DEBUG=false
 
 if [ "$MAGISK_VER_CODE" -ge 21000 ]; then
@@ -40,7 +40,7 @@ check_riru_version() {
 
 # This function will be used when util_functions.sh not exists
 enforce_install_from_magisk_app() {
-  if $BOOTMOE; then
+  if $BOOTMODE; then
     ui_print "- Installing from Magisk app"
   else
     ui_print "*********************************************************"

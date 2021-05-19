@@ -37,7 +37,6 @@ MAGISK_VER_CODE=$(magisk -V)
 . $(magisk --path)/.magisk/modules/riru-core/util_functions.sh
 
 LSPD_VERSION=$(grep_prop version "${MODDIR}/module.prop")
-LSPD_VERSIONCODE=$(grep_prop versionCode "${MODDIR}/module.prop")
 
 ANDROID_SDK=$(getprop ro.build.version.sdk)
 BUILD_DESC=$(getprop ro.build.description)
@@ -64,7 +63,6 @@ fi
 
 # If logcat client is kicked out by klogd server, we'll restart it.
 # However, if it is killed manually or by LSPosed Manager, we'll exit.
-# Refer to https://github.com/ElderDrivers/LSPosed/pull/575 for more information.
 loop_logcat() {
   while true; do
     logcat $*
@@ -78,23 +76,25 @@ print_log_head() {
   LOG_FILE=$1
   touch "${LOG_FILE}"
   chmod 666 "${LOG_FILE}"
-  echo "LSPosed Log" >>"${LOG_FILE}"
-  echo "--------- beginning of information" >>"${LOG_FILE}"
-  echo "Manufacturer: ${MANUFACTURER}" >>"${LOG_FILE}"
-  echo "Brand: ${BRAND}" >>"${LOG_FILE}"
-  echo "Device: ${DEVICE}" >>"${LOG_FILE}"
-  echo "Product: ${PRODUCT}" >>"${LOG_FILE}"
-  echo "Model: ${MODEL}" >>"${LOG_FILE}"
-  echo "Fingerprint: ${FINGERPRINT}" >>"${LOG_FILE}"
-  echo "ROM description: ${BUILD_DESC}" >>"${LOG_FILE}"
-  echo "Architecture: ${ARCH}" >>"${LOG_FILE}"
-  echo "Android build: ${BUILD}" >>"${LOG_FILE}"
-  echo "Android version: ${ANDROID}" >>"${LOG_FILE}"
-  echo "Android sdk: ${ANDROID_SDK}" >>"${LOG_FILE}"
-  echo "LSPosed version: ${LSPD_VERSION} (${LSPD_VERSIONCODE})" >>"${LOG_FILE}"
-  echo "Riru version: ${RIRU_VERSION_NAME} (${RIRU_VERSION_CODE})" >>"${LOG_FILE}"
-  echo "Riru api: ${RIRU_API}" >>"${LOG_FILE}"
-  echo "Magisk: ${MAGISK_VERSION%:*} (${MAGISK_VER_CODE})" >>"${LOG_FILE}"
+  {
+    echo "LSPosed Log"
+    echo "--------- beginning of information"
+    echo "Manufacturer: ${MANUFACTURER}"
+    echo "Brand: ${BRAND}"
+    echo "Device: ${DEVICE}"
+    echo "Product: ${PRODUCT}"
+    echo "Model: ${MODEL}"
+    echo "Fingerprint: ${FINGERPRINT}"
+    echo "ROM description: ${BUILD_DESC}"
+    echo "Architecture: ${ARCH}"
+    echo "Android build: ${BUILD}"
+    echo "Android version: ${ANDROID}"
+    echo "Android sdk: ${ANDROID_SDK}"
+    echo "LSPosed version: ${LSPD_VERSION}"
+    echo "Riru version: ${RIRU_VERSION_NAME} (${RIRU_VERSION_CODE})"
+    echo "Riru api: ${RIRU_API}"
+    echo "Magisk: ${MAGISK_VERSION%:*} (${MAGISK_VER_CODE})"
+  } >>"${LOG_FILE}"
 }
 
 start_log_catcher() {
@@ -135,12 +135,4 @@ if [ ! -z "${MISC_PATH}" ]; then
   start_log_catcher all "LSPosed:V XSharedPreferences:V LSPosed-Bridge:V LSPosedManager:V LSPosedService:V *:F" true ${LOG_VERBOSE}
 fi
 
-start_app_process() {
-  while true; do
-    if [ -S "/dev/socket/zygote" ]; then
-      /system/bin/app_process -Djava.class.path=$(magisk --path)/.magisk/modules/riru_lsposed/framework/lspd.dex /system/bin --nice-name=lspd org.lsposed.lspd.core.Main
-    fi
-  done
-}
-
-start_app_process &
+nohup /system/bin/app_process -Djava.class.path=$(magisk --path)/.magisk/modules/riru_lsposed/framework/lspd.dex /system/bin org.lsposed.lspd.core.Main --nice-name=lspd >/dev/null 2>&1

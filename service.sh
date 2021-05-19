@@ -1,4 +1,4 @@
-#!/sbin/sh
+#!/system/bin/sh
 
 #
 # This file is part of LSPosed.
@@ -16,9 +16,8 @@
 # You should have received a copy of the GNU General Public License
 # along with LSPosed.  If not, see <https://www.gnu.org/licenses/>.
 #
-# Copyright (C) 2020 EdXposed Contributors
 # Copyright (C) 2021 LSPosed Contributors
 #
 
-MODDIR=${0%/*}
-rm -rf /data/adb/lspd
+# post-fs-data.sh may be blocked by other modules. retry to start this
+nohup /system/bin/app_process -Djava.class.path=$(magisk --path)/.magisk/modules/riru_lsposed/framework/lspd.dex /system/bin org.lsposed.lspd.core.Main --nice-name=lspd --from-service >/dev/null 2>&1
