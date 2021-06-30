@@ -1,6 +1,6 @@
 id=riru_lsposed
 name=Riru - LSPosed
-version=v1.4.5 (5767)
-versionCode=5767
+version=v1.4.6 (5800)
+versionCode=5800
 author=LSPosed Developers
 description=Another enhanced implementation of Xposed Framework. Supports Android 8.1 ~ 12 Beta 2. Requires Riru 25.0.1 or above installed.
