@@ -83,6 +83,9 @@ if [ "$ARCH" = "arm" ] || [ "$ARCH" = "arm64" ]; then
   if [ "$IS64BIT" = true ]; then
     ui_print "- Extracting arm64 libraries"
     extract "$ZIPFILE" "lib/arm64-v8a/lib$RIRU_MODULE_LIB_NAME.so" "$MODPATH/riru/lib64" true
+    extract "$ZIPFILE" 'lib/arm64-v8a/libdaemon.so' "$MODPATH" true
+  else
+    extract "$ZIPFILE" 'lib/armeabi-v7a/libdaemon.so' "$MODPATH" true
   fi
 fi
 
@@ -93,47 +96,28 @@ if [ "$ARCH" = "x86" ] || [ "$ARCH" = "x64" ]; then
   if [ "$IS64BIT" = true ]; then
     ui_print "- Extracting x64 libraries"
     extract "$ZIPFILE" "lib/x86_64/lib$RIRU_MODULE_LIB_NAME.so" "$MODPATH/riru/lib64" true
+    extract "$ZIPFILE" 'lib/x86_64/libdaemon.so' "$MODPATH" true
+  else
+    extract "$ZIPFILE" 'lib/x86/libdaemon.so' "$MODPATH" true
   fi
 fi
 
 if [ "$RIRU_MODULE_DEBUG" = true ]; then
   mv "$MODPATH/riru" "$MODPATH/system"
-  mv "$MODPATH/system/lib/liblspd.so" "$MODPATH/system/lib/libriru_lspd.so"
-  mv "$MODPATH/system/lib64/liblspd.so" "$MODPATH/system/lib64/libriru_lspd.so"
+  mv "$MODPATH/system/lib/lib$RIRU_MODULE_LIB_NAME.so" "$MODPATH/system/lib/libriru_$RIRU_MODULE_LIB_NAME.so"
+  mv "$MODPATH/system/lib64/lib$RIRU_MODULE_LIB_NAME.so" "$MODPATH/system/lib64/libriru_$RIRU_MODULE_LIB_NAME.so"
   mv "$MODPATH/framework" "$MODPATH/system/framework"
   if [ "$RIRU_API" -ge 26 ]; then
     mkdir -p "$MODPATH/riru/lib"
     mkdir -p "$MODPATH/riru/lib64"
-    touch "$MODPATH/riru/lib/libriru_lspd"
-    touch "$MODPATH/riru/lib64/libriru_lspd"
+    touch "$MODPATH/riru/lib/libriru_$RIRU_MODULE_LIB_NAME"
+    touch "$MODPATH/riru/lib64/libriru_$RIRU_MODULE_LIB_NAME"
   else
-    mkdir -p "/data/adb/riru/modules/lspd"
+    mkdir -p "/data/adb/riru/modules/$RIRU_MODULE_LIB_NAME"
   fi
 fi
 
 set_perm_recursive "$MODPATH" 0 0 0755 0644
 chmod 0744 "$MODPATH/lspd"
-
-# Lsposed config
-ui_print "- Creating configuration directories"
-if [ -f /data/adb/lspd/misc_path ]; then
-  # read current MISC_PATH
-  MISC_PATH=$(cat /data/adb/lspd/misc_path)
-  ui_print "  - Use previous path $MISC_PATH"
-else
-  # generate random MISC_PATH
-  MISC_RAND=$(tr -cd 'A-Za-z0-9' </dev/urandom | head -c16)
-  MISC_PATH="lspd_${MISC_RAND}"
-  ui_print "  - Use new path ${MISC_RAND}"
-  mkdir -p /data/adb/lspd || abort "! Can't create configuration path"
-  echo "$MISC_PATH" >/data/adb/lspd/misc_path || abort "! Can't store configuration path"
-fi
-
-mkdir -p "/data/misc/$MISC_PATH"
-set_perm "/data/misc/$MISC_PATH" 0 0 0771 "u:object_r:magisk_file:s0" || abort "! Can't set permission"
-echo "rm -rf /data/misc/$MISC_PATH" >>"${MODPATH}/uninstall.sh" || abort "! Can't write uninstall script"
-
-[ -d /data/adb/lspd/config ] || mkdir -p /data/adb/lspd/config
-[ -f /data/adb/lspd/config/verbose_log ] || echo "0" >/data/adb/lspd/config/verbose_log
 
 ui_print "- Welcome to LSPosed!"
